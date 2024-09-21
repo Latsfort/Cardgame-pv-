@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Cartes</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Jeu de Cartes</h1>
+        <div id="status">
+            <p>PV du Boss : <strong><span id="pv_boss">{{ pv_boss }}</span></strong></p>
+            <p>PV du Joueur : <strong><span id="pv_joueur">{{ pv_joueur }}</span></strong></p>
+        </div>
+
+        <label for="pv_enleve">PV à enlever :</label>
+        <input type="number" id="pv_enleve" value="5" min="1">
+
+        <button onclick="enleverPV('boss')">Enlever au Boss</button>
+        <button onclick="enleverPV('joueur')">Enlever au Joueur</button>
+
+        <button onclick="resetPV()">Réinitialiser la Partie</button>
+
+        <!-- Nouveau bouton pour retourner au menu principal -->
+        <a href="/"><button>Retour au Menu Principal</button></a>
+
+        <!-- Section qui apparaîtra lorsque le joueur est vaincu -->
+        <div id="game-over" style="display: none;">
+            <h2 style="color: red;">Game Over !</h2>
+            <p>Le joueur a été vaincu. Que souhaitez-vous faire ?</p>
+            <a href="/"><button>Retour au Menu Principal</button></a>
+            <button onclick="resetPV()">Recommencer la Partie</button>
+        </div>
+    </div>
+
+    <script>
+        function enleverPV(cible) {
+            let pvEnleve = document.getElementById('pv_enleve').value;
+            if (pvEnleve <= 0) {
+                alert("Veuillez entrer un nombre valide.");
+                return;
+            }
+            fetch('/enlever', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ cible: cible, pv_enleve: pvEnleve }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('pv_boss').textContent = data.pv_boss;
+                document.getElementById('pv_joueur').textContent = data.pv_joueur;
+
+                // Ajout d'animation
+                if (cible === 'boss') {
+                    animateChange('pv_boss');
+                } else {
+                    animateChange('pv_joueur');
+                }
+
+                // Vérifier si le joueur est vaincu
+                if (data.pv_joueur <= 0) {
+                    afficherGameOver();
+                }
+            });
+        }
+
+        function resetPV() {
+            if (confirm("Es-tu sûr de vouloir réinitialiser la partie ?")) {
+                fetch('/reset', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('pv_boss').textContent = data.pv_boss;
+                    document.getElementById('pv_joueur').textContent = data.pv_joueur;
+                    document.getElementById('game-over').style.display = 'none'; // Cacher l'écran Game Over
+                });
+            }
+        }
+
+        function afficherGameOver() {
+            document.getElementById('game-over').style.display = 'block';
+        }
+
+        // Fonction pour animer le changement de PV
+        function animateChange(id) {
+            let element = document.getElementById(id);
+            element.style.transition = 'color 0.5s ease';
+            element.style.color = '#FF6347'; // Changer en rouge
+            setTimeout(() => {
+                element.style.color = '#000'; // Retourner à la couleur normale
+            }, 500);
+        }
+    </script>
+</body>
+</html>
