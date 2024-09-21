@@ -10,87 +10,74 @@
     <div class="container">
         <h1>Jeu de Cartes</h1>
         <div id="status">
-            <p>PV du Boss : <strong><span id="pv_boss">{{ pv_boss }}</span></strong></p>
-            <p>PV du Joueur : <strong><span id="pv_joueur">{{ pv_joueur }}</span></strong></p>
+            <p>Phase actuelle : <strong><span id="nom_phase">{{ data.phases_ennemi[data.phase_actuelle].nom }}</span></strong></p>
+            <p>PV du Boss : <strong><span id="pv_boss">{{ data.phases_ennemi[data.phase_actuelle].pv }}</span></strong></p>
+            <p>Attaque du Boss : <strong><span id="atk_boss">{{ data.phases_ennemi[data.phase_actuelle].atk }}</span></strong></p>
+            <p>Défense du Boss : <strong><span id="def_boss">{{ data.phases_ennemi[data.phase_actuelle].def }}</span></strong></p>
+            <p>PV du Joueur : <strong><span id="pv_joueur">{{ data.pv_joueur }}</span></strong></p>
         </div>
 
-        <label for="pv_enleve">PV à enlever :</label>
-        <input type="number" id="pv_enleve" value="5" min="1">
+        <label for="kii">Kii :</label>
+        <input type="number" id="kii" value="5" min="1">
 
-        <button onclick="enleverPV('boss')">Enlever au Boss</button>
-        <button onclick="enleverPV('joueur')">Enlever au Joueur</button>
+        <label for="atk_joueur">Attaque du Joueur :</label>
+        <input type="number" id="atk_joueur" value="10">
+
+        <button onclick="enleverPV('boss', false)">Attaquer le Boss</button>
+        <button onclick="enleverPV('joueur', false)">Le Boss attaque</button>
+        <button onclick="enleverPV('boss', true)">Attaque Ultime</button>
 
         <button onclick="resetPV()">Réinitialiser la Partie</button>
 
-        <!-- Nouveau bouton pour retourner au menu principal -->
-        <a href="/"><button>Retour au Menu Principal</button></a>
-
-        <!-- Section qui apparaîtra lorsque le joueur est vaincu -->
         <div id="game-over" style="display: none;">
             <h2 style="color: red;">Game Over !</h2>
-            <p>Le joueur a été vaincu. Que souhaitez-vous faire ?</p>
-            <a href="/"><button>Retour au Menu Principal</button></a>
-            <button onclick="resetPV()">Recommencer la Partie</button>
+            <button onclick="resetPV()">Recommencer</button>
         </div>
     </div>
 
     <script>
-        function enleverPV(cible) {
-            let pvEnleve = document.getElementById('pv_enleve').value;
-            if (pvEnleve <= 0) {
-                alert("Veuillez entrer un nombre valide.");
-                return;
-            }
+        function enleverPV(cible, ultime) {
+            const kii = document.getElementById('kii').value;
+            const atk_joueur = document.getElementById('atk_joueur').value;
+
             fetch('/enlever', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ cible: cible, pv_enleve: pvEnleve }),
+                body: JSON.stringify({
+                    cible: cible,
+                    atk: atk_joueur,
+                    kii: kii,
+                    def: 2,  // Défense du joueur (à personnaliser selon les règles)
+                    ultime: ultime
+                })
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('pv_boss').textContent = data.pv_boss;
-                document.getElementById('pv_joueur').textContent = data.pv_joueur;
+                document.getElementById('pv_joueur').innerText = data.pv_joueur;
+                document.getElementById('pv_boss').innerText = data.phases_ennemi[data.phase_actuelle].pv;
+                document.getElementById('nom_phase').innerText = data.phases_ennemi[data.phase_actuelle].nom;
+                document.getElementById('atk_boss').innerText = data.phases_ennemi[data.phase_actuelle].atk;
+                document.getElementById('def_boss').innerText = data.phases_ennemi[data.phase_actuelle].def;
 
-                // Ajout d'animation
-                if (cible === 'boss') {
-                    animateChange('pv_boss');
-                } else {
-                    animateChange('pv_joueur');
-                }
-
-                // Vérifier si le joueur est vaincu
                 if (data.pv_joueur <= 0) {
-                    afficherGameOver();
+                    document.getElementById('game-over').style.display = 'block';
                 }
             });
         }
 
         function resetPV() {
-            if (confirm("Es-tu sûr de vouloir réinitialiser la partie ?")) {
-                fetch('/reset', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('pv_boss').textContent = data.pv_boss;
-                    document.getElementById('pv_joueur').textContent = data.pv_joueur;
-                    document.getElementById('game-over').style.display = 'none'; // Cacher l'écran Game Over
-                });
-            }
-        }
-
-        function afficherGameOver() {
-            document.getElementById('game-over').style.display = 'block';
-        }
-
-        // Fonction pour animer le changement de PV
-        function animateChange(id) {
-            let element = document.getElementById(id);
-            element.style.transition = 'color 0.5s ease';
-            element.style.color = '#FF6347'; // Changer en rouge
-            setTimeout(() => {
-                element.style.color = '#000'; // Retourner à la couleur normale
-            }, 500);
+            fetch('/reset', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('pv_joueur').innerText = data.pv_joueur;
+                document.getElementById('pv_boss').innerText = data.phases_ennemi[data.phase_actuelle].pv;
+                document.getElementById('nom_phase').innerText = data.phases_ennemi[data.phase_actuelle].nom;
+                document.getElementById('atk_boss').innerText = data.phases_ennemi[data.phase_actuelle].atk;
+                document.getElementById('def_boss').innerText = data.phases_ennemi[data.phase_actuelle].def;
+                document.getElementById('game-over').style.display = 'none';
+            });
         }
     </script>
 </body>

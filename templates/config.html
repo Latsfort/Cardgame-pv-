@@ -3,24 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuration des PV</title>
+    <title>Configuration de la Partie</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <h1>Configuration de la Partie</h1>
         <form method="POST">
-            <label for="pv_boss">PV du Boss :</label>
-            <input type="number" id="pv_boss" name="pv_boss" value="20" min="1" required>
-
             <label for="pv_joueur">PV du Joueur :</label>
             <input type="number" id="pv_joueur" name="pv_joueur" value="50" min="1" required>
 
+            <label for="nb_phases">Nombre de phases de l'ennemi :</label>
+            <input type="number" id="nb_phases" name="nb_phases" value="1" min="1" max="5" required>
+
+            <div id="phases_container"></div>
+
             <button type="submit">Commencer la Partie</button>
         </form>
-        {% if error %}
-        <p style="color: red;">{{ error }}</p>
-        {% endif %}
+
+        <script>
+            const nbPhasesInput = document.getElementById('nb_phases');
+            const phasesContainer = document.getElementById('phases_container');
+
+            function updatePhases() {
+                phasesContainer.innerHTML = '';
+                const nbPhases = parseInt(nbPhasesInput.value);
+                for (let i = 0; i < nbPhases; i++) {
+                    phasesContainer.innerHTML += `
+                        <h3>Phase ${i + 1}</h3>
+                        <label for="nom_phase_${i}">Nom de la Phase :</label>
+                        <input type="text" id="nom_phase_${i}" name="nom_phase_${i}" required>
+
+                        <label for="pv_phase_${i}">PV :</label>
+                        <input type="number" id="pv_phase_${i}" name="pv_phase_${i}" value="30" required>
+
+                        <label for="atk_phase_${i}">Attaque :</label>
+                        <input type="number" id="atk_phase_${i}" name="atk_phase_${i}" value="5" required>
+
+                        <label for="def_phase_${i}">Défense :</label>
+                        <input type="number" id="def_phase_${i}" name="def_phase_${i}" value="2" required>
+                    `;
+                }
+            }
+
+            nbPhasesInput.addEventListener('input', updatePhases);
+            updatePhases();
+        </script>
     </div>
 </body>
 </html>
