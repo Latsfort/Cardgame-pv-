@@ -3,40 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuration des PV</title>
+    <title>Configuration du Boss</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>Configuration de la Partie</h1>
-        <form method="POST" action="/config">
-            <label for="pv_joueur">PV du Joueur :</label>
-            <input type="number" id="pv_joueur" name="pv_joueur" value="50" min="1" required>
+        <h1>Configuration du Boss</h1>
+
+        <form action="/config" method="POST">
+            <label for="pv_joueur">PV Joueur :</label>
+            <input type="number" id="pv_joueur" name="pv_joueur" value="50" min="1" required><br>
 
             <label for="nbr_phases">Nombre de phases du Boss :</label>
-            <input type="number" id="nbr_phases" name="nbr_phases" value="1" min="1" required>
+            <input type="number" id="nbr_phases" name="nbr_phases" value="1" min="1" max="5" required><br>
 
-            <div id="phases-container"></div>
+            <div id="phases">
+                <h2>Phase 1</h2>
+                <label for="pv_phase_1">PV :</label>
+                <input type="number" id="pv_phase_1" name="pv_phase_1" value="50" min="1" required><br>
+                <label for="atk_phase_1">ATK :</label>
+                <input type="number" id="atk_phase_1" name="atk_phase_1" value="10" min="1" required><br>
+                <label for="def_phase_1">DEF :</label>
+                <input type="number" id="def_phase_1" name="def_phase_1" value="5" min="1" required><br>
+                <label for="nom_phase_1">Nom :</label>
+                <input type="text" id="nom_phase_1" name="nom_phase_1" value="Phase 1" required><br>
+            </div>
 
-            <button type="submit">Commencer la Partie</button>
+            <button type="submit">Commencer le Combat</button>
         </form>
 
-        <!-- Sauvegarder le profil -->
-        <h2>Sauvegarder ce profil de boss</h2>
-        <form method="POST" action="/save_boss_profile">
-            <input type="text" name="profile_name" placeholder="Nom du profil" required>
-            <button type="submit">Sauvegarder le Profil</button>
+        <h2>Sauvegarder le profil du boss</h2>
+        <form id="save-profile-form" method="POST" action="/save_boss_profile">
+            <label for="profile_name">Nom du profil :</label>
+            <input type="text" id="profile_name" name="profile_name" required><br>
+
+            <input type="hidden" id="nbr_phases_hidden" name="nbr_phases">
+            <button type="submit">Sauvegarder le profil</button>
         </form>
 
         <script>
-            document.getElementById('nbr_phases').addEventListener('input', function() {
+            // Dynamique de la configuration des phases
+            document.getElementById('nbr_phases').addEventListener('change', function() {
                 const nbrPhases = parseInt(this.value);
-                const phasesContainer = document.getElementById('phases-container');
+                const phasesContainer = document.getElementById('phases');
                 phasesContainer.innerHTML = '';
 
                 for (let i = 1; i <= nbrPhases; i++) {
                     phasesContainer.innerHTML += `
-                        <h3>Phase ${i}</h3>
+                        <h2>Phase ${i}</h2>
                         <label for="pv_phase_${i}">PV :</label>
                         <input type="number" id="pv_phase_${i}" name="pv_phase_${i}" value="50" min="1" required><br>
                         <label for="atk_phase_${i}">ATK :</label>
@@ -47,6 +61,9 @@
                         <input type="text" id="nom_phase_${i}" name="nom_phase_${i}" value="Phase ${i}" required><br>
                     `;
                 }
+
+                // Mise à jour du nombre de phases pour la sauvegarde
+                document.getElementById('nbr_phases_hidden').value = nbrPhases;
             });
         </script>
     </div>

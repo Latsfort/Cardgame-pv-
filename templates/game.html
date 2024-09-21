@@ -15,21 +15,38 @@
             <p>Phase actuelle : <span id="phase-actuelle">{{ game_data['phase_actuelle'] }}</span></p>
         </div>
 
+        <div>
+            <label for="kii">Kii :</label>
+            <input type="number" id="kii" value="5" min="1">
+
+            <label for="atk">Attaque :</label>
+            <input type="number" id="atk" value="10" min="1">
+
+            <label for="defense">Défense Joueur :</label>
+            <input type="number" id="defense" value="5" min="1">
+        </div>
+
         <button id="attaquer-boss">Attaquer le Boss</button>
         <button id="attaque-ultime">Ultime contre le Boss</button>
+        <button id="attaquer-joueur">Le Boss attaque le Joueur</button>
         <button id="reset">Recommencer</button>
         <a href="/"><button>Retour au Menu</button></a>
 
         <div id="message"></div>
 
         <script>
+            // Attaque normale contre le boss
             document.getElementById('attaquer-boss').addEventListener('click', function() {
+                const kii = document.getElementById('kii').value;
+                const atk = document.getElementById('atk').value;
+                const defense = document.getElementById('defense').value;
+
                 fetch('/enlever', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ cible: 'boss', kii: 5, atk: 10 })
+                    body: JSON.stringify({ cible: 'boss', kii: kii, atk: atk, def: defense })
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -42,6 +59,50 @@
                 });
             });
 
+            // Attaque ultime contre le boss
+            document.getElementById('attaque-ultime').addEventListener('click', function() {
+                const kii = document.getElementById('kii').value;
+
+                fetch('/enlever', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ cible: 'boss', kii: kii, ultime: true })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.gagne) {
+                        document.getElementById('message').innerHTML = data.message;
+                    } else {
+                        document.getElementById('pv-boss').innerText = data.pv_boss;
+                    }
+                });
+            });
+
+            // Attaque du boss contre le joueur
+            document.getElementById('attaquer-joueur').addEventListener('click', function() {
+                const kii = document.getElementById('kii').value;
+                const atk = document.getElementById('atk').value;
+                const defense = document.getElementById('defense').value;
+
+                fetch('/enlever', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ cible: 'joueur', kii: kii, atk: atk, def: defense })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.gagne) {
+                        document.getElementById('pv-joueur').innerText = data.pv_joueur;
+                        document.getElementById('message').innerText = data.message || '';
+                    }
+                });
+            });
+
+            // Reset du jeu
             document.getElementById('reset').addEventListener('click', function() {
                 fetch('/reset', { method: 'POST' })
                 .then(response => response.json())
@@ -49,6 +110,7 @@
                     document.getElementById('pv-joueur').innerText = data.pv_joueur;
                     document.getElementById('pv-boss').innerText = data.pv_boss;
                     document.getElementById('phase-actuelle').innerText = data.phase_actuelle;
+                    document.getElementById('message').innerText = '';
                 });
             });
         </script>

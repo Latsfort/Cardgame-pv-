@@ -109,22 +109,25 @@ def reset():
 
 @app.route('/save_boss_profile', methods=['POST'])
 def save_boss_profile():
-    profile_name = request.form['profile_name']
-    nbr_phases = int(request.form['nbr_phases'])
+    try:
+        profile_name = request.form['profile_name']
+        nbr_phases = int(request.form['nbr_phases'])
 
-    phases = []
-    for i in range(1, nbr_phases + 1):
-        phases.append({
-            'pv': int(request.form[f'pv_phase_{i}']),
-            'atk': int(request.form[f'atk_phase_{i}']),
-            'def': int(request.form[f'def_phase_{i}']),
-            'nom': request.form[f'nom_phase_{i}']
-        })
+        phases = []
+        for i in range(1, nbr_phases + 1):
+            phases.append({
+                'pv': int(request.form[f'pv_phase_{i}']),
+                'atk': int(request.form[f'atk_phase_{i}']),
+                'def': int(request.form[f'def_phase_{i}']),
+                'nom': request.form[f'nom_phase_{i}']
+            })
 
-    boss_profiles[profile_name] = phases
-    save_boss_profiles()
+        boss_profiles[profile_name] = phases
+        save_boss_profiles()
 
-    return jsonify(success=True)
+        return jsonify(success=True)
+    except Exception as e:
+        return jsonify(success=False, error=str(e)), 400
 
 @app.route('/load_boss_profile/<profile_name>', methods=['GET'])
 def load_boss_profile(profile_name):
