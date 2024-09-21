@@ -3,13 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu Principal</title>
+    <title>Jeu de Cartes - Menu Principal</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="container">
         <h1>Jeu de Cartes</h1>
         <a href="/config"><button>Nouvelle Partie</button></a>
+
+        <h2>Charger un profil de boss</h2>
+        <form id="load-profile-form">
+            <input type="text" id="profile_name" placeholder="Nom du profil">
+            <button type="submit">Charger</button>
+        </form>
     </div>
+
+    <script>
+        document.getElementById('load-profile-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const profileName = document.getElementById('profile_name').value;
+            
+            fetch(`/load_boss_profile/${profileName}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        // Rediriger vers la page de jeu avec les données chargées
+                        fetch('/config', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(data)
+                        }).then(() => {
+                            window.location.href = '/game';
+                        });
+                    }
+                });
+        });
+    </script>
 </body>
 </html>
